@@ -1,7 +1,7 @@
 {
   "name": "immex",
   "description": "React hooks friendly state management lib build on immer.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "lib/immex.js",
   "umd:main": "lib/immex.umd.js",
   "module": "lib/immex.module.js",
@@ -28,9 +28,9 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yewei/immex/issues"
+    "url": "https://github.com/ye-will/immex/issues"
   },
-  "homepage": "https://github.com/yewei/immex#readme",
+  "homepage": "https://github.com/ye-will/immex#readme",
   "peerDependencies": {
     "immer": "^6.0.0",
     "react": "^16.8.0"
