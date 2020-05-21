@@ -12,6 +12,9 @@ const immex = <T = any>(reducer: Reducer<T>, initialValue?: T) => {
     listeners: []
   }
   const update = (...args: any[]) => {
+    if (store.listeners.length === 0) {
+      throw new Error("No immex react hook found, maybe something goes wrong...")
+    }
     Promise.resolve(immerReducer(store.state as any, ...args)).then(result => {
       store.state = result
       for (let i = 0; i < store.listeners.length; i += 1) {
