@@ -1,10 +1,16 @@
 # Immex
 
-- based on immer.js
+- based on [immer.js](https://immerjs.github.io/immer/docs/introduction)
 - (global) statement management
 - react hooks friendly
 - insanely easy to use, just one API
 - support async/await reducers
+
+## Example
+
+See [examples](https://github.com/ye-will/immex/tree/master/examples) here, or
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/ye-will/immex/tree/gitpod)
 
 ## Installation
 
@@ -20,6 +26,8 @@ Define your store/reducer and export the react hook
 // useCalculator.js
 import immex from 'immex'
 
+// immer reducer function
+// refer: https://immerjs.github.io/immer/docs/curried-produce
 const calculator = (draft, {operator, payload}) => {
   switch (operator) {
     case 'add':
@@ -32,7 +40,10 @@ const calculator = (draft, {operator, payload}) => {
   }
 }
 
-const useCalculator = immex(calculator, {value: 0})
+const useCalculator = immex(
+  calculator,
+  {value: 0} // initial state
+)
 export default useCalculator
 ```
 
@@ -59,6 +70,8 @@ export default () => {
   )
 }
 ```
+
+Another component
 
 ```javascript
 // bar.tsx
