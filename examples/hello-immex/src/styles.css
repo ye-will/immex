@@ -1,0 +1,8 @@
+.App {
+  font-family: sans-serif;
+}
+
+div > span:last-child {
+  position: absolute;
+  left: 120px;
+}
