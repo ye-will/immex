@@ -5,10 +5,10 @@ interface Reducer<T> {
   (draft: Draft<T>, ...rest: any[]): void
 }
 
-const immex = <T = any>(reducer: Reducer<T>, initialValue: T) => {
+const immex = <T = any>(reducer: Reducer<T>, initialValue?: T) => {
   const immerReducer = produce(reducer)
   const store = {
-    state: castImmutable(produce(initialValue, _ => {})),
+    state: castImmutable(produce(initialValue ?? {}, _ => {})),
     listeners: []
   }
   const update = (...args: any[]) => {
