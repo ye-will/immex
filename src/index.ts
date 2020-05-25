@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import produce, { Draft, castImmutable } from 'immer'
 
 interface Reducer<T> {
@@ -9,28 +9,27 @@ const immex = <T = any>(reducer: Reducer<T>, initialValue?: T) => {
   const immerReducer = produce(reducer)
   const store = {
     state: castImmutable(produce(initialValue ?? {}, _ => {})),
-    listeners: []
+    listeners: new Set()
   }
-  const update = (...args: any[]) => {
-    if (store.listeners.length === 0) {
-      throw new Error("No immex react hook found, maybe something goes wrong...")
-    }
-    Promise.resolve(immerReducer(store.state as any, ...args)).then(result => {
-      store.state = result
-      for (let i = 0; i < store.listeners.length; i += 1) {
-        store.listeners[i](result)
-      }
-    })
-  }
+  const iDisptach = (...args: any[]) => Promise.resolve(immerReducer(store.state as any, ...args)).then(result => {
+    store.state = result
+    store.listeners.forEach((listener: any) => listener(result))
+  })
   return () => {
-    const [localState, localUpdate] = useState(store.state)
+    const [localState, localUpdate] = useState(() => store.state)
+    const disptach = useCallback((...args: any[]) => {
+      if (!store.listeners.has(localUpdate)) {
+        throw new Error('update is invalid before component rendered or after component destroyed.')
+      }
+      iDisptach(...args)
+    }, [localUpdate])
     useEffect(() => {
-      store.listeners.push(localUpdate)
+      store.listeners.add(localUpdate)
       return () => {
-        store.listeners = store.listeners.filter(i => i !== localUpdate)
+        store.listeners.delete(localUpdate)
       }
     }, [])
-    return [localState, update]
+    return [localState, disptach]
   }
 }
 
