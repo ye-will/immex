@@ -36,28 +36,16 @@ class Store<U extends any[]> {
 
 // type Immex<U extends any[]> = (reducer: Reducer<U>, initialValue?: U[0]) => () => [Immutable<U[0]>, (...args: Tail<Parameters<Reducer<U>>>) => void]
 type ImmexDispatcher<U extends any[]> = (...args: Tail<Parameters<Reducer<U>>>) => Promise<void>
-type ImmexCallBack<U extends any[]> = (dispatch: ImmexDispatcher<U>) => (() => any) | void
 
-const immex = <U extends any[]>(reducer: Reducer<U>, initialValue: U[0], callback?: ImmexCallBack<U>) => {
+const immex = <U extends any[]>(reducer: Reducer<U>, initialValue: U[0]) => {
   const store = new Store<U>(reducer, initialValue)
   return (): [Immutable<U[0]>, ImmexDispatcher<U>] => {
     const [localState, localUpdate] = useState(() => store.state)
-    const disptach: ImmexDispatcher<U> = useCallback((...args) => {
-      if (!store.listeners.has(localUpdate)) {
-        throw new Error('update is invalid before component rendered or after component destroyed.')
-      }
-      return store.dispatch(...args)
-    }, [localUpdate])
+    const disptach: ImmexDispatcher<U> = useCallback((...args) => store.dispatch(...args), [])
     useEffect(() => {
       store.listeners.add(localUpdate)
-      const cleaner = (callback && store.listeners.size === 1)
-        ? callback(disptach)
-        : undefined
       return () => {
         store.listeners.delete(localUpdate)
-        if (cleaner && store.listeners.size === 0) {
-          cleaner()
-        }
       }
     }, [disptach])
     return [localState, disptach]
