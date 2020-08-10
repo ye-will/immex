@@ -19,18 +19,22 @@ class Store<U extends any[]> {
   state: Immutable<U[0]>
   readonly listeners: Set<Dispatch<Immutable<U[0]>>>
   readonly immerReducer: <Base extends Immutable<U[0]>>(base: Base, ...rest: Tail<Parameters<Reducer<U>>>) => Base
+  lock: Promise<void>
 
   constructor(reducer: Reducer<U>, initialValue: U[0]) {
     this.immerReducer = produce(reducer)
     this.state = castImmutable(produce(initialValue, _ => {}))
     this.listeners = new Set()
+    this.lock = Promise.resolve()
   }
 
   async dispatch(...args: Tail<Parameters<Reducer<U>>>) {
-    return Promise.resolve(this.immerReducer(this.state, ...args)).then(result => {
+    await this.lock
+    this.lock = Promise.resolve(this.immerReducer(this.state, ...args)).then(result => {
       this.state = result
       this.listeners.forEach(listener => listener(result))
     })
+    return this.lock
   }
 }
 
