@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 import { useState, useEffect, useCallback, Dispatch } from 'react'
 import produce, { Draft, castImmutable, Immutable } from 'immer'
 
@@ -18,8 +16,9 @@ type Reducer<U extends any[]> = ((...args: U) => void) extends (
   : never
 
 type Unlock = () => void
+type Locker = (callback: () => Promise<void>) => Promise<void>
 
-const withLock = (() => {
+const locker = (): Locker => {
   const tasks: Unlock[] = []
   let done = true
   const sched = () => {
@@ -46,21 +45,23 @@ const withLock = (() => {
       throw err
     })
   )
-})()
+}
 
 class Store<U extends any[]> {
   state: Immutable<U[0]>
   readonly listeners: Set<Dispatch<Immutable<U[0]>>>
   readonly immerReducer: <Base extends Immutable<U[0]>>(base: Base, ...rest: Tail<Parameters<Reducer<U>>>) => Base
+  readonly withLock: Locker
 
   constructor(reducer: Reducer<U>, initialValue: U[0]) {
+    this.withLock = locker()
     this.immerReducer = produce(reducer)
     this.state = castImmutable(produce(initialValue, _ => {}))
     this.listeners = new Set()
   }
 
   async dispatch(...args: Tail<Parameters<Reducer<U>>>) {
-    return withLock(() => Promise.resolve(this.immerReducer(this.state, ...args)).then(result => {
+    return this.withLock(() => Promise.resolve(this.immerReducer(this.state, ...args)).then(result => {
       this.state = result
       this.listeners.forEach(listener => listener(result))
     }))
