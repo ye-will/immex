@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, Dispatch } from 'react'
-import produce, { Draft, castImmutable, Immutable } from 'immer'
+import produce, { Draft, castImmutable, castDraft, Immutable } from 'immer'
 
 type Tail<T extends any[]> = ((...t: T) => any) extends (
 	_: any,
@@ -73,7 +73,7 @@ type ImmexDispatcher<U extends any[]> = (...args: Tail<Parameters<Reducer<U>>>) 
 
 const immex = <U extends any[]>(reducer: Reducer<U>, initialValue: U[0]) => {
   const store = new Store<U>(reducer, initialValue)
-  return (): [Immutable<U[0]>, ImmexDispatcher<U>] => {
+  return (): [Draft<Immutable<U[0]>>, ImmexDispatcher<U>] => {
     const [localState, localUpdate] = useState(() => store.state)
     const disptach: ImmexDispatcher<U> = useCallback((...args) => store.dispatch(...args), [])
     useEffect(() => {
@@ -82,7 +82,7 @@ const immex = <U extends any[]>(reducer: Reducer<U>, initialValue: U[0]) => {
         store.listeners.delete(localUpdate)
       }
     }, [disptach])
-    return [localState, disptach]
+    return [castDraft(localState), disptach]
   }
 }
 
