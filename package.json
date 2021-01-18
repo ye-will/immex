@@ -1,7 +1,7 @@
 {
   "name": "immex",
   "description": "React hooks friendly state management lib build on immer.js",
-  "version": "0.1.13",
+  "version": "0.2.0",
   "main": "lib/immex.js",
   "umd:main": "lib/immex.umd.js",
   "module": "lib/immex.module.js",

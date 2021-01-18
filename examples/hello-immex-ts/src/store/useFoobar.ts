@@ -11,16 +11,25 @@ interface Foobar {
 
 export enum FoobarType {
   UpdateFoo,
-  UpdateBar
+  UpdateBar,
+  Error
 }
 
-const calculator = (draft: Draft<Foobar>, type: FoobarType, payload: string) => {
+const calculator = async (draft: Draft<Foobar>, type: FoobarType, payload?: string) => {
   switch (type) {
     case FoobarType.UpdateFoo:
-      draft.foo = payload
+      await new Promise<void>(resolve => {
+        setTimeout(() => resolve(), 2000)
+      })
+      draft.foo = new Date().toISOString()
       break
     case FoobarType.UpdateBar:
-      draft.bar = payload
+      draft.bar = payload || ""
+      break
+    case FoobarType.Error:
+      await new Promise<void>((_, reject) => {
+        setTimeout(() => reject(new Error('error')), 2000)
+      })
       break
     default:
   }

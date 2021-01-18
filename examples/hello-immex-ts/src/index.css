@@ -6,7 +6,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-div > span:last-child {
+div {
+  padding-bottom: 8px;
+}
+
+div > span:last-child,
+div > button:last-child {
   position: absolute;
   left: 120px;
 }
