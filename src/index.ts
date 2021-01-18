@@ -67,22 +67,20 @@ class Store<U extends any[]> {
     this.status = new Set()
   }
 
+  loading(loading: boolean) {
+    this.status.forEach(setStatus => setStatus({loading}))
+  }
+
   async dispatch(...args: Tail<Parameters<Reducer<U>>>) {
     return this.withLock(() => {
-      this.status.forEach(setStatus => setStatus({
-        loading: true
-      }))
+      this.loading(true)
       return Promise.resolve(this.immerReducer(this.state, ...args)).then(result => {
         this.state = result
         this.listeners.forEach(listener => listener(result))
-        this.status.forEach(setStatus => setStatus({
-          loading: false
-        }))
+        this.loading(false)
         return result
       }).catch(err => {
-        this.status.forEach(setStatus => setStatus({
-          loading: false
-        }))
+        this.loading(false)
         throw err
       })
     })
