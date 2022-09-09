@@ -89,24 +89,32 @@ class Store<U extends any[]> {
 
 // type Immex<U extends any[]> = (reducer: Reducer<U>, initialValue?: U[0]) => () => [Immutable<U[0]>, (...args: Tail<Parameters<Reducer<U>>>) => void]
 type ImmexDispatcher<U extends any[]> = (...args: Tail<Parameters<Reducer<U>>>) => Promise<Immutable<U[0]>>
+type ImmexInitParams<U extends any[]> = [] | Parameters<ImmexDispatcher<U>>
+
+function isInitParams<U extends any[]>(init: ImmexInitParams<U>): init is Parameters<ImmexDispatcher<U>> {
+  return init.length > 0
+}
 
 const immex = <U extends any[]>(reducer: Reducer<U>, initialValue: U[0]) => {
   const store = new Store<U>(reducer, initialValue)
-  return (): [Draft<Immutable<U[0]>>, ImmexDispatcher<U>, ImmexStatus] => {
+  return (...init: ImmexInitParams<U>): [Draft<Immutable<U[0]>>, ImmexDispatcher<U>, ImmexStatus] => {
     const [localState, localUpdate] = useState(() => store.state)
     const [status, statusUpdate] = useState(() => ({
       loading: false
     }))
-    const disptach: ImmexDispatcher<U> = useCallback((...args) => store.dispatch(...args), [])
+    const dispatch: ImmexDispatcher<U> = useCallback((...args) => store.dispatch(...args), [])
     useEffect(() => {
       store.status.add(statusUpdate)
       store.listeners.add(localUpdate)
+      if (isInitParams(init)) {
+        dispatch(...init)
+      }
       return () => {
         store.listeners.delete(localUpdate)
         store.status.delete(statusUpdate)
       }
-    }, [disptach])
-    return [castDraft(localState), disptach, status]
+    }, [dispatch])
+    return [castDraft(localState), dispatch, status]
   }
 }
 
