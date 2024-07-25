@@ -21,7 +21,7 @@ type Locker<T> = (callback: () => Promise<T>) => Promise<T>
 const locker = <T extends any>(): Locker<T> => {
   const tasks: Unlock[] = []
   let done = true
-  const sched = () => {
+  const schedule = () => {
     if (done && tasks.length > 0) {
       done = false;
       (tasks.shift() as Unlock)()
@@ -30,12 +30,10 @@ const locker = <T extends any>(): Locker<T> => {
   return (callback: () => Promise<T>) => new Promise<Unlock>((resolve) => {
     const task = () => resolve(() => {
       done = true
-      sched()
+      schedule()
     })
     tasks.push(task);
-    (typeof process !== 'undefined' && process.nextTick)
-      ? process.nextTick(sched)
-      : setImmediate(sched)
+    schedule();
   }).then(release => callback()
     .then(result => {
       release()
