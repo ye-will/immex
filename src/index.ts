@@ -27,13 +27,13 @@ const locker = <T extends any>(): Locker<T> => {
       (tasks.shift() as Unlock)()
     }
   }
-  return (callback: () => Promise<T>) => new Promise<Unlock>((reslove) => {
-    const task = () => reslove(() => {
+  return (callback: () => Promise<T>) => new Promise<Unlock>((resolve) => {
+    const task = () => resolve(() => {
       done = true
       sched()
     })
     tasks.push(task);
-    (process && process.nextTick)
+    (typeof process !== 'undefined' && process.nextTick)
       ? process.nextTick(sched)
       : setImmediate(sched)
   }).then(release => callback()
